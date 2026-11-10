@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="zh-Hant"><meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'none'; img-src 'none'">
+<title>ProbeLab browser fixture</title>
+<style>body{font:16px sans-serif;margin:24px;max-width:800px}label{display:block;margin:14px 0}input,textarea,[contenteditable]{display:block;width:500px;min-height:28px;border:1px solid #666;font:18px sans-serif;padding:6px}textarea{height:65px}</style>
+<h1>ProbeLab 私有 fixture</h1><p>僅使用本機檔案；實驗中請勿操作鍵盤滑鼠。</p>
+<label>單行<input id="input" aria-label="ProbeLab-input"></label>
+<label>多行<textarea id="textarea" aria-label="ProbeLab-textarea"></textarea></label>
+<label>密碼<input id="password" type="password" aria-label="ProbeLab-password"></label>
+<label>唯讀<input id="readonly" readonly value="fixture readonly" aria-label="ProbeLab-readonly"></label>
+<label>contenteditable<div id="editable" contenteditable="true" role="textbox" aria-label="ProbeLab-editable"></div></label>
+<label>大寫且最多十字<input id="transform" aria-label="ProbeLab-transform"></label>
+<label>模擬 React 受控欄位<input id="controlled" aria-label="ProbeLab-controlled"></label>
+<label>網址列式自動完成<input id="autocomplete" aria-label="ProbeLab-autocomplete" autocomplete="off" spellcheck="false"></label>
+<script>
+// No dependencies and no network. This is a React-like controlled-input simulation, not React itself.
+window.probeEvents=[];window.controlledState='';
+const ids=['input','textarea','password','readonly','editable','transform','controlled','autocomplete'];
+for(const id of ids){const e=document.getElementById(id);for(const type of ['keydown','keyup','beforeinput','input','change','select','selectionchange','focus','blur'])e.addEventListener(type,ev=>{window.probeEvents.push({time:performance.now(),id,type,key:ev.key??null,inputType:ev.inputType??null,data:ev.data??null,value:e.value??e.textContent,start:e.selectionStart??null,end:e.selectionEnd??null});});}
+document.getElementById('transform').addEventListener('input',ev=>{ev.target.value=ev.target.value.toUpperCase().slice(0,10)});
+document.getElementById('controlled').addEventListener('input',ev=>{window.controlledState=ev.target.value;ev.target.value=window.controlledState;});
+document.getElementById('autocomplete').addEventListener('input',ev=>{const e=ev.target;if(e.value==='goo'&&ev.inputType!=='deleteContentBackward'){e.value='google.com';e.setSelectionRange(3,10);}});
+window.probeState=id=>{const e=document.getElementById(id),s=getSelection();let selection=null;if(e.isContentEditable&&s.rangeCount){const r=s.getRangeAt(0);if(e.contains(r.startContainer)&&e.contains(r.endContainer)){const p=r.cloneRange();p.selectNodeContents(e);p.setEnd(r.startContainer,r.startOffset);selection={start:p.toString().length,end:p.toString().length+r.toString().length};}}return{id,value:e.value??e.textContent,start:e.selectionStart??selection?.start??null,end:e.selectionEnd??selection?.end??null,active:document.activeElement===e,readOnly:!!e.readOnly,password:e.type==='password',controlledState:window.controlledState,eventCount:window.probeEvents.length};};
+window.probeReset=id=>{const e=document.getElementById(id);if(e.isContentEditable)e.textContent='';else if(!e.readOnly)e.value='';if(id==='controlled')window.controlledState='';e.focus();window.probeEvents=[];};
+</script></html>

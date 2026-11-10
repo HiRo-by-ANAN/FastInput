@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- FastInput MSI（WiX Toolset 5，MS-RL，免費）。建置：powershell -File build-msi.ps1 -->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs" xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+  <Package Name="FastInput" Manufacturer="HiRo-by-ANAN" Version="$(var.ProductVersion)"
+           UpgradeCode="6B1D0B6E-3C0F-4E36-9A55-2F7B3F6C8A11" Scope="perMachine" Language="1028"
+           InstallerVersion="500" Compressed="yes">
+    <SummaryInformation Description="FastInput — 手機打字，電腦即現" />
+    <MajorUpgrade DowngradeErrorMessage="已安裝較新版本的 FastInput。" />
+    <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
+
+    <Icon Id="FastInputIcon" SourceFile="$(var.IconFile)" />
+    <Property Id="ARPPRODUCTICON" Value="FastInputIcon" />
+    <Property Id="ARPURLINFOABOUT" Value="https://github.com/HiRo-by-ANAN/FastInput" />
+    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
+    <WixVariable Id="WixUILicenseRtf" Value="$(var.LicenseRtf)" />
+
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="FastInput" />
+    </StandardDirectory>
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="StartMenuDir" Name="FastInput" />
+    </StandardDirectory>
+    <StandardDirectory Id="DesktopFolder" />
+
+    <Feature Id="Main" Title="FastInput" Description="主程式與授權文件" Level="1" AllowAbsent="no" ConfigurableDirectory="INSTALLFOLDER">
+      <ComponentGroupRef Id="ProgramFiles" />
+      <ComponentRef Id="StartMenuShortcut" />
+      <Feature Id="DesktopShortcutFeature" Title="桌面捷徑" Description="在桌面建立 FastInput 捷徑" Level="1" AllowAbsent="yes">
+        <ComponentRef Id="DesktopShortcut" />
+      </Feature>
+    </Feature>
+
+    <ui:WixUI Id="WixUI_FeatureTree" />
+  </Package>
+
+  <Fragment>
+    <ComponentGroup Id="ProgramFiles" Directory="INSTALLFOLDER">
+      <Component Id="MainExe" Bitness="always64">
+        <File Id="FastInputExe" Source="$(var.SourceDir)\FastInput.exe" KeyPath="yes" />
+      </Component>
+      <Component Id="ServerExe" Bitness="always64">
+        <File Id="ServerExeFile" Source="$(var.SourceDir)\fastinput-server.exe" KeyPath="yes" />
+      </Component>
+      <Component Id="LicenseDoc" Bitness="always64">
+        <File Id="LicenseFile" Source="$(var.RepoRoot)\LICENSE" Name="LICENSE.txt" KeyPath="yes" />
+      </Component>
+      <Component Id="NoticesDoc" Bitness="always64">
+        <File Id="NoticesFile" Source="$(var.RepoRoot)\THIRD_PARTY_NOTICES.txt" KeyPath="yes" />
+      </Component>
+      <Component Id="ReadmeDoc" Bitness="always64">
+        <File Id="ReadmeFile" Source="$(var.RepoRoot)\README.md" KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+
+    <Component Id="StartMenuShortcut" Directory="StartMenuDir" Bitness="always64">
+      <Shortcut Id="StartMenuLink" Name="FastInput" Target="[INSTALLFOLDER]FastInput.exe" WorkingDirectory="INSTALLFOLDER" />
+      <RemoveFolder Id="RemoveStartMenuDir" On="uninstall" />
+      <RegistryValue Root="HKCU" Key="Software\HiRo-by-ANAN\FastInput" Name="StartMenuShortcut" Type="integer" Value="1" KeyPath="yes" />
+    </Component>
+    <Component Id="DesktopShortcut" Directory="DesktopFolder" Bitness="always64">
+      <Shortcut Id="DesktopLink" Name="FastInput" Target="[INSTALLFOLDER]FastInput.exe" WorkingDirectory="INSTALLFOLDER" />
+      <RegistryValue Root="HKCU" Key="Software\HiRo-by-ANAN\FastInput" Name="DesktopShortcut" Type="integer" Value="1" KeyPath="yes" />
+    </Component>
+  </Fragment>
+</Wix>

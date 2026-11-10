@@ -1,0 +1,9 @@
+﻿<!doctype html><meta charset="utf-8"><title>FastInput LiveSim isolated fixture</title>
+<style>body{font:18px sans-serif;padding:30px}input,textarea,[contenteditable]{display:block;width:620px;min-height:40px;margin:16px 0;border:2px solid #555}textarea,[contenteditable]{height:90px}</style>
+<label>Input<input id="input" aria-label="LiveSim-input" autocomplete="off"></label>
+<label>Textarea<textarea id="textarea" aria-label="LiveSim-textarea"></textarea></label>
+<label>Contenteditable<div id="editable" aria-label="LiveSim-editable" contenteditable="true"></div></label>
+<label>Password<input id="password" aria-label="LiveSim-password" type="password"></label>
+<script>
+window.liveEvents=[]; for(const e of document.querySelectorAll('input,textarea,[contenteditable]'))e.addEventListener('input',()=>window.liveEvents.push({id:e.id,text:e.isContentEditable?e.textContent:e.value,time:performance.now()}));
+</script>

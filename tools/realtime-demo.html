@@ -1,0 +1,1497 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <title>FastInput · 實時輸入模式 Demo（Mock 協定模擬）</title>
+    <link rel="stylesheet" href="./style.css" />
+    <link rel="stylesheet" href="./files.css" />
+    <link rel="stylesheet" href="./realtime.css" />
+    <style>
+      .demo-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1.08fr) minmax(320px, 0.92fr);
+        gap: 24px;
+        align-items: start;
+        margin-bottom: 36px;
+      }
+      .demo-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        min-width: 0;
+      }
+      .demo-card {
+        padding: 20px 22px;
+        border: 1px solid rgba(190, 209, 195, .72);
+        border-radius: var(--radius);
+        background: var(--surface);
+        box-shadow: var(--shadow);
+      }
+      .demo-card h3 {
+        margin: 4px 0 10px;
+        font-size: 1.05rem;
+        letter-spacing: -.02em;
+      }
+      .demo-pc-screen {
+        padding: 14px 16px;
+        border: 2px solid var(--accent);
+        border-radius: 14px;
+        background: var(--surface-soft);
+      }
+      .demo-pc-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 8px;
+        font-size: .76rem;
+        font-weight: 750;
+        color: var(--ink-soft);
+      }
+      .demo-enter-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 3px 9px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: var(--surface);
+        color: var(--accent-dark);
+        font-size: .75rem;
+        font-weight: 800;
+        font-variant-numeric: tabular-nums;
+      }
+      .demo-pc-input {
+        display: block;
+        width: 100%;
+        min-height: 76px;
+        padding: 10px 12px;
+        border: 1.5px solid var(--line);
+        border-radius: 10px;
+        background: var(--surface);
+        color: var(--ink);
+        font-size: 1rem;
+        line-height: 1.6;
+        resize: vertical;
+      }
+      .demo-pc-meta {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 8px;
+        font-size: .73rem;
+        color: var(--muted);
+        font-variant-numeric: tabular-nums;
+      }
+      .demo-btn-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 10px;
+      }
+      .demo-btn-grid .button {
+        min-height: 40px;
+        padding: 7px 12px;
+        font-size: .78rem;
+      }
+      .demo-btn-active {
+        border-color: var(--accent) !important;
+        background: var(--accent-soft) !important;
+        color: var(--accent-dark) !important;
+      }
+      .demo-log {
+        max-height: 210px;
+        overflow-y: auto;
+        padding: 10px 12px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: var(--surface-soft);
+        font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+        font-size: .74rem;
+        line-height: 1.55;
+        color: var(--ink-soft);
+      }
+      .demo-log-entry {
+        margin: 0 0 4px;
+        word-break: break-all;
+      }
+      .demo-kv {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        margin-top: 10px;
+        font-size: .76rem;
+      }
+      .demo-kv-item {
+        padding: 8px 10px;
+        border-radius: 10px;
+        border: 1px solid var(--line);
+        background: var(--surface-soft);
+      }
+      .demo-kv-item span {
+        display: block;
+        color: var(--muted);
+        font-size: .7rem;
+      }
+      .demo-kv-item strong {
+        font-variant-numeric: tabular-nums;
+      }
+      @media (max-width: 960px) {
+        .demo-layout {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+      @media (max-width: 480px) {
+        .demo-kv {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+    </style>
+  </head>
+  <body data-role="phone">
+    <div class="app-shell">
+      <header class="site-header">
+        <div class="brand" aria-label="FastInput">
+          <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+          <span>Fast<span class="brand-accent">Input</span> · Realtime Demo</span>
+        </div>
+        <div class="connection-badge is-online" role="status" aria-live="polite">
+          <span class="status-dot" aria-hidden="true"></span>
+          <span>Mock 區網環境（無外部連線）</span>
+        </div>
+      </header>
+
+      <main class="main-content">
+        <div class="demo-layout">
+          <!-- 左欄：手機網頁端（含分頁切換與 #realtimeCard） -->
+          <div class="main-col">
+            <div class="main-tabs" role="tablist" aria-label="工作區分頁">
+              <button id="demoTabText" class="main-tab" role="tab" aria-selected="false" aria-controls="demoTextPlaceholder" type="button">文字</button>
+              <button id="demoTabFiles" class="main-tab" role="tab" aria-selected="false" aria-controls="demoFilesPlaceholder" type="button">檔案</button>
+              <button id="demoTabRealtime" class="main-tab" role="tab" aria-selected="true" aria-controls="realtimeCard" type="button">實時</button>
+            </div>
+
+            <section id="demoTextPlaceholder" class="side-card" hidden>
+              <p class="section-kicker">共用記事本（展示分頁切換）</p>
+              <h2>已切換離開「實時」分頁</h2>
+              <p class="side-description">離開「實時」分頁時已自動呼叫 <code>window.FastInputRealtime.deactivate()</code> 並送出 <code>release</code>。點上方「實時」分頁即可呼叫 <code>activate()</code>。</p>
+            </section>
+
+            <section id="demoFilesPlaceholder" class="side-card" hidden>
+              <p class="section-kicker">雙向傳檔（展示分頁切換）</p>
+              <h2>檔案暫存區分頁</h2>
+              <p class="side-description">點上方「實時」分頁可回到實時輸入模式。</p>
+            </section>
+
+            <!--
+            ==================== REALTIME-FRAGMENT ====================
+            整合說明：
+            1. 在 index.html 的 .main-tabs 加入第 3 個按鈕：
+               <button id="tabRealtime" class="main-tab" role="tab" aria-selected="false" aria-controls="realtimeCard" type="button">實時</button>
+            2. 將下方 <section id="realtimeCard" ...> 到 </section> 複製到 #filesCard 之後（預設可加上 hidden）。
+            3. 引入 /realtime.css 與 /realtime.js（defer）。
+            4. 分頁切到「實時」時呼叫 window.FastInputRealtime.activate()；切離時呼叫 window.FastInputRealtime.deactivate()。
+            -->
+            <section id="realtimeCard" class="side-card realtime-card" aria-labelledby="rtHeading">
+              <div class="rt-header">
+                <div class="rt-heading-group">
+                  <span class="rt-icon-badge" aria-hidden="true">⚡</span>
+                  <div>
+                    <p class="section-kicker">即時同步輸入</p>
+                    <h2 id="rtHeading" class="rt-title">實時輸入模式</h2>
+                  </div>
+                </div>
+                <div class="rt-header-badges">
+                  <span id="rtLeasePill" class="rt-lease-pill" hidden>租約剩餘 05:00</span>
+                  <span id="rtPhasePill" class="rt-phase-pill" data-phase="DISABLED" role="status" aria-live="polite">
+                    <span id="rtPhaseDot" class="rt-phase-dot" aria-hidden="true"></span>
+                    <span id="rtPhaseText">待機</span>
+                  </span>
+                </div>
+              </div>
+              <p class="rt-description">在手機打字，文字會即時打進電腦上你用滑鼠點選的輸入框。單行模式，不支援換行與快捷鍵。</p>
+
+              <div id="rtStatusBox" class="rt-status-box" role="status" aria-live="polite">
+                <div class="rt-status-top">
+                  <div class="rt-status-copy">
+                    <strong id="rtStatusTitle" class="rt-status-title">準備開始實時輸入</strong>
+                    <p id="rtStatusDetail" class="rt-status-detail">按下「開始實時輸入」後，電腦會跳出核對碼視窗，核准並點選目標輸入框即可開始。</p>
+                  </div>
+                  <div class="rt-actions">
+                    <button id="rtStartButton" class="button button-primary rt-btn" type="button">開始實時輸入</button>
+                    <button id="rtReleaseButton" class="button button-danger rt-btn" type="button" hidden>結束實時輸入</button>
+                  </div>
+                </div>
+                <div id="rtCheckCodeWrap" class="rt-checkcode-wrap" hidden>
+                  <span class="rt-checkcode-label">請在電腦上核對並按核准（兩位數核對碼）</span>
+                  <span id="rtCheckCodeDigits" class="rt-checkcode-digits" aria-label="兩位數核對碼">--</span>
+                </div>
+              </div>
+
+              <div id="rtAlert" class="rt-alert" role="alert" hidden>
+                <p id="rtAlertText" class="rt-alert-text"></p>
+                <button id="rtAlertClose" class="rt-alert-close" type="button" aria-label="關閉提示訊息">關閉</button>
+              </div>
+
+              <div id="rtLockedSection" class="rt-locked-section" hidden>
+                <div class="rt-locked-header">
+                  <span>已鎖定的先前段落（唯讀，不會重送）</span>
+                  <button id="rtLockedClearButton" class="rt-locked-clear" type="button">清除紀錄</button>
+                </div>
+                <div id="rtLockedList" class="rt-locked-list"></div>
+              </div>
+
+              <div id="rtInputWrap" class="rt-input-wrap is-locked">
+                <label class="rt-sr-only" for="rtInput">實時輸入文字區</label>
+                <textarea id="rtInput" class="rt-textarea" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" rows="4" placeholder="核准並在電腦點選輸入框後，即可在此打字…" readonly disabled></textarea>
+                <div class="rt-input-footer">
+                  <span id="rtSyncProgress" class="rt-sync-progress" aria-live="polite">尚未開始</span>
+                  <span id="rtCharCounter" class="rt-char-counter">0 / 4,096 字元（0 / 16,384 B）</span>
+                </div>
+              </div>
+
+              <div id="rtEnterSection" class="rt-enter-section" hidden>
+                <div class="rt-enter-header">
+                  <span class="rt-enter-badge">虛擬 Enter</span>
+                  <span id="rtEnterDesc" class="rt-enter-desc">這個按鈕需要長按（按住滿 0.6 秒才會送出 Enter，放開即取消）</span>
+                </div>
+                <button
+                  id="rtEnterButton"
+                  class="rt-enter-btn"
+                  type="button"
+                  tabindex="-1"
+                  aria-label="長按送出 Enter（這個按鈕需要長按滿 0.6 秒）"
+                  aria-describedby="rtEnterDesc rtEnterConfirm rtEnterFeedback"
+                >
+                  <span class="rt-enter-ring" aria-hidden="true">
+                    <svg class="rt-enter-ring-svg" viewBox="0 0 36 36" focusable="false" aria-hidden="true">
+                      <circle class="rt-enter-ring-track" cx="18" cy="18" r="15" pathLength="100"></circle>
+                      <circle class="rt-enter-ring-fill" cx="18" cy="18" r="15" pathLength="100"></circle>
+                    </svg>
+                    <span class="rt-enter-ring-icon">↵</span>
+                  </span>
+                  <span id="rtEnterButtonLabel" class="rt-enter-btn-label">長按送出 Enter</span>
+                </button>
+                <div id="rtEnterConfirm" class="rt-enter-confirm" role="status" aria-live="polite" hidden>
+                  <p id="rtEnterConfirmTarget" class="rt-enter-confirm-target">將送出 Enter 到：目前欄位</p>
+                  <p id="rtEnterConfirmTailRow" class="rt-enter-confirm-tail">
+                    <span>文字尾端：</span><strong id="rtEnterConfirmTail">（目前無文字）</strong>
+                  </p>
+                </div>
+                <p id="rtEnterFeedback" class="rt-enter-feedback" role="status" aria-live="polite" hidden></p>
+              </div>
+
+              <div id="rtLiveStatus" class="rt-sr-only" role="status" aria-live="polite"></div>
+            </section>
+            <!-- ==================== /REALTIME-FRAGMENT ==================== -->
+
+            <div class="demo-card">
+              <p class="section-kicker">手機端快速輸入測試</p>
+              <h3>肉眼驗證腳本（需在 ACTIVE 狀態下點擊）</h3>
+              <div class="demo-btn-grid">
+                <button id="demoSimGoagle" class="button button-secondary" type="button">示範：Goagle → Google（中間改字）</button>
+                <button id="demoSimTyping" class="button button-secondary" type="button">示範：逐字輸入＋刪除</button>
+                <button id="demoSimLongText" class="button button-secondary" type="button">示範：長文字（300 字）</button>
+                <button id="demoSimNewline" class="button button-secondary" type="button">測試：貼上含換行文字（應攔截）</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 右欄：模擬的電腦端與協定情境控制台 -->
+          <aside class="demo-panel" aria-label="模擬電腦端與協定控制台">
+            <section class="demo-card">
+              <p class="section-kicker">模擬電腦端視窗（C# Native + 目標輸入框）</p>
+              <h3>💻 模擬的電腦輸入框（即時顯示最終套用文字）</h3>
+              <div class="demo-pc-screen">
+                <div class="demo-pc-bar">
+                  <span id="mockTargetLabel">目標：尚未綁定欄位</span>
+                  <span id="mockCheckCodeBadge">核對碼：無</span>
+                  <span id="mockEnterCountBadge" class="demo-enter-pill" aria-live="polite">
+                    收到 Enter 次數：<strong id="mockEnterCount">0</strong>
+                  </span>
+                </div>
+                <label class="visually-hidden" for="mockDesktopInput">模擬的電腦輸入框</label>
+                <textarea id="mockDesktopInput" class="demo-pc-input" rows="3" readonly placeholder="電腦端欄位內容會即時顯示在這裡…"></textarea>
+                <div class="demo-pc-meta">
+                  <span id="mockEditDiff">最新最小編輯：尚無</span>
+                  <span id="mockCursorInfo">游標範圍：[0, 0]</span>
+                </div>
+              </div>
+
+              <div class="demo-kv">
+                <div class="demo-kv-item">
+                  <span>後端 Phase / Epoch</span>
+                  <strong id="mockPhaseDisplay">DISABLED / -</strong>
+                </div>
+                <div class="demo-kv-item">
+                  <span>序號 (accepted / applied / expected)</span>
+                  <strong id="mockSeqDisplay">0 / 0 / 1</strong>
+                </div>
+                <div class="demo-kv-item">
+                  <span>虛擬 Enter 狀態 (enter_available)</span>
+                  <strong id="mockEnterCapDisplay">關閉 (false)</strong>
+                </div>
+                <div class="demo-kv-item">
+                  <span>目標程式 (target_app / enter_allowed)</span>
+                  <strong id="mockTargetAppDisplay">Chrome / 允許</strong>
+                </div>
+              </div>
+
+              <div class="demo-btn-grid">
+                <button id="mockBtnApprove" class="button button-primary" type="button">① 電腦核准 (grant)</button>
+                <button id="mockBtnBind" class="button button-primary" type="button">② 滑鼠點選欄位 (新 epoch)</button>
+                <button id="mockBtnToggleVirtualEnter" class="button button-secondary" type="button">電腦端允許虛擬 Enter：目前【關】</button>
+                <button id="mockBtnToggleTargetEnter" class="button button-secondary" type="button">目標欄位 enter_allowed：目前【開】</button>
+                <button id="mockBtnPreloadText" class="button button-secondary" type="button">設定欄位既有前後文 [Hello | World]</button>
+                <button id="mockBtnClearPc" class="button button-secondary" type="button">清空電腦欄位</button>
+              </div>
+            </section>
+
+            <section class="demo-card">
+              <p class="section-kicker">協定異常與邊界情境模擬</p>
+              <h3>🧪 注入網路／協定與虛擬 Enter 事件</h3>
+              <div class="demo-btn-grid">
+                <button id="mockBtnForceTextPending" class="button button-secondary" type="button">強制 Enter 回 text_pending：目前【關】</button>
+                <button id="mockBtnEnterTimeout" class="button button-secondary" type="button">下次 Enter 模擬逾時不明 (驗證同 id 重送只計一次)</button>
+                <button id="mockBtnEnterRateLimit" class="button button-secondary" type="button">下次 Enter 回 rate_limited (429)</button>
+                <button id="mockBtnLatency" class="button button-secondary" type="button">切換網路延遲：目前 20ms</button>
+                <button id="mockBtnRateLimit" class="button button-secondary" type="button">下次 states 回 rate_limited (429)</button>
+                <button id="mockBtnSeqGap" class="button button-secondary" type="button">下次 states 回 sequence_gap (漏收重送)</button>
+                <button id="mockBtnTimeout" class="button button-secondary" type="button">下次 states 模擬逾時不明 (重送驗證)</button>
+                <button id="mockBtnQueueFull" class="button button-secondary" type="button">下次 states 回 queue_full (429)</button>
+                <button id="mockBtnFocusChanged" class="button button-secondary" type="button">暫停：focus_changed</button>
+                <button id="mockBtnContentDiverged" class="button button-secondary" type="button">暫停：content_diverged</button>
+                <button id="mockBtnPhysicalInput" class="button button-secondary" type="button">暫停：physical_input</button>
+                <button id="mockBtnEmergencyStop" class="button button-danger" type="button">撤權：emergency_stop</button>
+                <button id="mockBtnUnknown" class="button button-danger" type="button">觸發 UNKNOWN (結果不明)</button>
+                <button id="mockBtnRevoke" class="button button-danger" type="button">觸發 REVOKED (heartbeat_timeout)</button>
+                <button id="mockBtnResync" class="button button-secondary" type="button">SSE 送出 resync_required</button>
+              </div>
+            </section>
+
+            <section class="demo-card">
+              <p class="section-kicker">Mock 協定追蹤紀錄</p>
+              <h3>📡 端點與狀態佇列日誌</h3>
+              <div id="mockLog" class="demo-log" aria-live="polite"></div>
+            </section>
+          </aside>
+        </div>
+      </main>
+    </div>
+
+    <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+    <!-- 在載入 realtime.js 之前先掛載 Mock fetch / XMLHttpRequest / EventSource -->
+    <script>
+      (() => {
+        "use strict";
+
+        const originalFetch = window.fetch ? window.fetch.bind(window) : null;
+        const OriginalXHR = window.XMLHttpRequest;
+        const OriginalEventSource = window.EventSource;
+
+        function randomHex32() {
+          let out = "";
+          for (let i = 0; i < 32; i++) {
+            out += Math.floor(Math.random() * 16).toString(16);
+          }
+          return out;
+        }
+
+        const mockServer = {
+          bootId: randomHex32(),
+          available: true,
+          phase: "DISABLED",
+          requestId: null,
+          sessionId: null,
+          clientNonce: null,
+          checkCode: null,
+          capability: null,
+          targetEpoch: null,
+          epochCounter: 0,
+          acceptedSeq: 0,
+          appliedSeq: 0,
+          expectedSeq: 1,
+          seqStatus: null,
+          proof: null,
+          reason: null,
+          retryAfterMs: null,
+          grantTime: 0,
+          leaseLimitMs: 300000,
+          eventId: 1,
+          networkLatencyMs: 20,
+          applyDelayMs: 30,
+
+          // M4 虛擬 Enter 狀態（電腦端預設關閉 virtual_enter: false）
+          capabilities: {
+            virtual_enter: false,
+          },
+          targetApp: "Chrome",
+          enterAllowed: true,
+          enterCount: 0,
+          lastEnterTime: 0,
+          enterInFlight: false,
+          lastEnterSnapshot: null,
+          processedEnterIds: new Map(),
+
+          // 模擬外部電腦輸入框的前後文 P + S + Q
+          prefixP: "",
+          suffixQ: "",
+          currentS: "",
+          acceptedStates: new Map(),
+          applyTimer: null,
+
+          // 單次或持續故障注入旗標
+          injectRateLimitOnce: false,
+          injectSeqGapOnce: false,
+          injectTimeoutOnce: false,
+          injectQueueFullOnce: false,
+          forceTextPending: false,
+          injectEnterTimeoutOnce: false,
+          injectEnterRateLimitOnce: false,
+
+          sseClients: new Set(),
+        };
+
+        function computeEnterAvailable() {
+          return Boolean(
+            mockServer.capabilities.virtual_enter &&
+            mockServer.phase === "ACTIVE" &&
+            mockServer.enterAllowed
+          );
+        }
+
+        function logMock(msg) {
+          const box = document.getElementById("mockLog");
+          if (!box) return;
+          const p = document.createElement("p");
+          p.className = "demo-log-entry";
+          const time = new Date().toLocaleTimeString("zh-TW", { hour12: false });
+          p.textContent = `[${time}] ${msg}`;
+          box.prepend(p);
+          while (box.childNodes.length > 60) {
+            box.removeChild(box.lastChild);
+          }
+        }
+
+        function computeMinimalDiff(oldS, newS) {
+          let prefix = 0;
+          const minLen = Math.min(oldS.length, newS.length);
+          while (prefix < minLen && oldS.charCodeAt(prefix) === newS.charCodeAt(prefix)) {
+            prefix++;
+          }
+          let oldEnd = oldS.length;
+          let newEnd = newS.length;
+          while (
+            oldEnd > prefix &&
+            newEnd > prefix &&
+            oldS.charCodeAt(oldEnd - 1) === newS.charCodeAt(newEnd - 1)
+          ) {
+            oldEnd--;
+            newEnd--;
+          }
+          const replaced = newS.slice(prefix, newEnd);
+          return `區間 [${prefix}, ${oldEnd}) 替換為 "${replaced}"`;
+        }
+
+        function updateDesktopUI(lastDiffText, selStart, selEnd) {
+          const inputEl = document.getElementById("mockDesktopInput");
+          const targetEl = document.getElementById("mockTargetLabel");
+          const codeEl = document.getElementById("mockCheckCodeBadge");
+          const enterCountEl = document.getElementById("mockEnterCount");
+          const diffEl = document.getElementById("mockEditDiff");
+          const cursorEl = document.getElementById("mockCursorInfo");
+          const phaseEl = document.getElementById("mockPhaseDisplay");
+          const seqEl = document.getElementById("mockSeqDisplay");
+          const enterCapEl = document.getElementById("mockEnterCapDisplay");
+          const targetAppEl = document.getElementById("mockTargetAppDisplay");
+
+          if (inputEl) {
+            inputEl.value = mockServer.prefixP + mockServer.currentS + mockServer.suffixQ;
+          }
+          if (targetEl) {
+            targetEl.textContent = mockServer.targetEpoch
+              ? `目標：${mockServer.targetApp} 輸入框 (${mockServer.targetEpoch})`
+              : "目標：尚未綁定欄位";
+          }
+          if (codeEl) {
+            codeEl.textContent = mockServer.checkCode
+              ? `核對碼：${mockServer.checkCode}`
+              : "核對碼：無";
+          }
+          if (enterCountEl) {
+            enterCountEl.textContent = String(mockServer.enterCount);
+          }
+          if (diffEl && lastDiffText) {
+            diffEl.textContent = `最新最小編輯：${lastDiffText}`;
+          }
+          if (cursorEl && typeof selStart === "number" && typeof selEnd === "number") {
+            const offset = mockServer.prefixP.length;
+            cursorEl.textContent = `游標範圍：[${offset + selStart}, ${offset + selEnd}]（自有文字 [${selStart}, ${selEnd}]）`;
+          }
+          if (phaseEl) {
+            phaseEl.textContent = `${mockServer.phase} / ${mockServer.targetEpoch || "-"}`;
+          }
+          if (seqEl) {
+            seqEl.textContent = `${mockServer.acceptedSeq} / ${mockServer.appliedSeq} / ${mockServer.expectedSeq}`;
+          }
+          if (enterCapEl) {
+            const avail = computeEnterAvailable();
+            enterCapEl.textContent = `${mockServer.capabilities.virtual_enter ? "電腦允許" : "電腦關閉"} (${avail ? "enter_available: true" : "false"})`;
+          }
+          if (targetAppEl) {
+            targetAppEl.textContent = `${mockServer.targetApp || "-"} / ${mockServer.enterAllowed ? "允許 Enter" : "禁用 Enter"}`;
+          }
+        }
+
+        function getLeaseRemaining() {
+          if (
+            !mockServer.grantTime ||
+            mockServer.phase === "DISABLED" ||
+            mockServer.phase === "REQUESTED" ||
+            mockServer.phase === "REVOKED"
+          ) {
+            return null;
+          }
+          return Math.max(0, mockServer.leaseLimitMs - (Date.now() - mockServer.grantTime));
+        }
+
+        function buildSnapshot(extra = {}) {
+          mockServer.expectedSeq = mockServer.acceptedSeq + 1;
+          const enterAvailable = computeEnterAvailable();
+          updateDesktopUI();
+          return Object.assign(
+            {
+              v: 1,
+              server_boot_id: mockServer.bootId,
+              request_id: mockServer.requestId,
+              session_id: mockServer.sessionId,
+              target_epoch: mockServer.targetEpoch,
+              phase: mockServer.phase,
+              available: mockServer.available,
+              accepted_seq: mockServer.acceptedSeq,
+              applied_seq: mockServer.appliedSeq,
+              expected_seq: mockServer.expectedSeq,
+              seq_status: mockServer.seqStatus,
+              proof: mockServer.proof,
+              reason: mockServer.reason,
+              retry_after_ms: mockServer.retryAfterMs,
+              lease_remaining_ms: getLeaseRemaining(),
+              enter_available: enterAvailable,
+              target_app: mockServer.targetEpoch ? mockServer.targetApp : null,
+              enter: mockServer.lastEnterSnapshot,
+              event_id: mockServer.eventId++,
+            },
+            extra
+          );
+        }
+
+        function emitSSE(payload) {
+          const dataStr = JSON.stringify(payload);
+          mockServer.sseClients.forEach((client) => {
+            client._dispatch("realtime", dataStr, String(payload.event_id || mockServer.eventId));
+          });
+        }
+
+        function scheduleNextNativeApply() {
+          if (mockServer.applyTimer !== null) return;
+          if (mockServer.phase !== "ACTIVE") return;
+          if (mockServer.appliedSeq >= mockServer.acceptedSeq) return;
+
+          const nextToApply = mockServer.appliedSeq + 1;
+          const item = mockServer.acceptedStates.get(nextToApply);
+          if (!item) return;
+
+          mockServer.seqStatus = "applying";
+          mockServer.proof = null;
+
+          mockServer.applyTimer = setTimeout(() => {
+            mockServer.applyTimer = null;
+            if (mockServer.phase !== "ACTIVE") return;
+
+            const diffDesc = computeMinimalDiff(mockServer.currentS, item.text);
+            mockServer.currentS = item.text;
+            mockServer.appliedSeq = item.seq;
+            mockServer.seqStatus =
+              mockServer.appliedSeq === mockServer.acceptedSeq ? "applied" : "applying";
+            mockServer.proof = "verified_readback";
+
+            updateDesktopUI(diffDesc, item.selection_start, item.selection_end);
+            const snap = buildSnapshot({
+              seq: item.seq,
+              seq_status: "applied",
+              proof: "verified_readback",
+            });
+            emitSSE(snap);
+
+            if (mockServer.appliedSeq < mockServer.acceptedSeq) {
+              scheduleNextNativeApply();
+            }
+          }, mockServer.applyDelayMs);
+        }
+
+        function handleRealtimeRoute(method, path, headers, bodyText) {
+          let body = {};
+          if (bodyText) {
+            try {
+              body = JSON.parse(bodyText);
+            } catch (_) {
+              return { status: 400, json: { code: "invalid_json" } };
+            }
+          }
+
+          const capHeader =
+            (headers && (headers["X-FI-Realtime"] || headers["x-fi-realtime"])) || null;
+
+          if (method === "GET" && path === "/api/realtime/status") {
+            return { status: 200, json: buildSnapshot() };
+          }
+
+          if (method === "POST" && path === "/api/realtime/request") {
+            if (!body || typeof body.client_nonce !== "string" || !/^[0-9a-f]{32}$/.test(body.client_nonce)) {
+              return { status: 422, json: { code: "invalid_nonce" } };
+            }
+            clearTimeout(mockServer.applyTimer);
+            mockServer.applyTimer = null;
+            mockServer.requestId = randomHex32();
+            mockServer.sessionId = randomHex32();
+            mockServer.clientNonce = body.client_nonce;
+            mockServer.checkCode = String(Math.floor(Math.random() * 90) + 10);
+            mockServer.capability = null;
+            mockServer.targetEpoch = null;
+            mockServer.phase = "REQUESTED";
+            mockServer.acceptedSeq = 0;
+            mockServer.appliedSeq = 0;
+            mockServer.expectedSeq = 1;
+            mockServer.seqStatus = null;
+            mockServer.proof = null;
+            mockServer.reason = null;
+            mockServer.lastEnterSnapshot = null;
+            mockServer.acceptedStates.clear();
+            mockServer.processedEnterIds.clear();
+
+            logMock(`POST /request → 核對碼 ${mockServer.checkCode}，等待按「① 電腦核准」`);
+            const snap = buildSnapshot({ check_code: mockServer.checkCode });
+            return { status: 200, json: snap };
+          }
+
+          if (method === "POST" && path === "/api/realtime/claim") {
+            if (!mockServer.requestId) {
+              return { status: 409, json: { code: "no_request" } };
+            }
+            if (
+              body.request_id !== mockServer.requestId ||
+              body.client_nonce !== mockServer.clientNonce
+            ) {
+              return { status: 403, json: { code: "invalid_claim" } };
+            }
+            if (mockServer.phase === "REQUESTED") {
+              return {
+                status: 409,
+                json: Object.assign(buildSnapshot(), { code: "approval_pending" }),
+              };
+            }
+            if (!mockServer.capability) {
+              mockServer.capability = randomHex32();
+            }
+            logMock("POST /claim → 已核發 capability，等待按「② 滑鼠點選欄位」");
+            return {
+              status: 200,
+              json: buildSnapshot({ capability: mockServer.capability }),
+            };
+          }
+
+          if (method === "POST" && path === "/api/realtime/heartbeat") {
+            if (!mockServer.capability || capHeader !== mockServer.capability) {
+              return { status: 403, json: { code: "invalid_capability" } };
+            }
+            if (body.confirm_empty === true) {
+              if (
+                mockServer.phase === "BINDING" &&
+                body.target_epoch === mockServer.targetEpoch
+              ) {
+                mockServer.phase = "ACTIVE";
+                mockServer.reason = null;
+                mockServer.currentS = "";
+                mockServer.lastEnterSnapshot = null;
+                logMock(`收到 confirm_empty (${body.target_epoch}) → 進入 ACTIVE！`);
+                const snap = buildSnapshot();
+                emitSSE(snap);
+                return { status: 200, json: snap };
+              }
+            }
+            return { status: 200, json: buildSnapshot() };
+          }
+
+          if (method === "POST" && path === "/api/realtime/release") {
+            if (!mockServer.capability || capHeader !== mockServer.capability) {
+              return { status: 403, json: { code: "invalid_capability" } };
+            }
+            clearTimeout(mockServer.applyTimer);
+            mockServer.applyTimer = null;
+            mockServer.phase = "REVOKED";
+            mockServer.reason = "released";
+            mockServer.targetEpoch = null;
+            mockServer.capability = null;
+            mockServer.lastEnterSnapshot = null;
+            logMock("POST /release → 已主動釋放實時輸入工作階段");
+            const snap = buildSnapshot();
+            emitSSE(snap);
+            return { status: 200, json: snap };
+          }
+
+          if (method === "POST" && path === "/api/realtime/states") {
+            if (!mockServer.capability || capHeader !== mockServer.capability) {
+              return { status: 403, json: { code: "invalid_capability" } };
+            }
+            if (mockServer.phase !== "ACTIVE") {
+              return {
+                status: 409,
+                json: Object.assign(buildSnapshot(), { code: "invalid_phase" }),
+              };
+            }
+            if (body.target_epoch !== mockServer.targetEpoch) {
+              return {
+                status: 409,
+                json: Object.assign(buildSnapshot(), { code: "epoch_mismatch" }),
+              };
+            }
+
+            if (mockServer.injectTimeoutOnce) {
+              mockServer.injectTimeoutOnce = false;
+              logMock("⚠️ 模擬網路逾時／結果不明（實際後端已收下，測試客戶端同序號原樣重送）");
+              const incoming = Array.isArray(body.states) ? body.states : [];
+              incoming.forEach((st) => {
+                if (st.seq === mockServer.acceptedSeq + 1) {
+                  mockServer.acceptedSeq = st.seq;
+                  mockServer.acceptedStates.set(st.seq, st);
+                }
+              });
+              scheduleNextNativeApply();
+              return { status: 408, json: { code: "bad_request" } };
+            }
+
+            if (mockServer.injectRateLimitOnce) {
+              mockServer.injectRateLimitOnce = false;
+              mockServer.retryAfterMs = 180;
+              logMock("⚠️ 模擬 429 rate_limited (retry_after_ms: 180ms)");
+              const snap = buildSnapshot({ code: "rate_limited", retry_after_ms: 180 });
+              mockServer.retryAfterMs = null;
+              return { status: 429, json: snap };
+            }
+
+            if (mockServer.injectQueueFullOnce) {
+              mockServer.injectQueueFullOnce = false;
+              mockServer.phase = "PAUSED";
+              mockServer.reason = "queue_full";
+              mockServer.targetEpoch = null;
+              logMock("⚠️ 模擬 429 queue_full → 暫停本 epoch");
+              const snap = buildSnapshot({ code: "queue_full" });
+              emitSSE(snap);
+              return { status: 429, json: snap };
+            }
+
+            const states = Array.isArray(body.states) ? body.states : [];
+            if (states.length < 1 || states.length > 8) {
+              return { status: 422, json: { code: "invalid_batch" } };
+            }
+
+            if (mockServer.injectSeqGapOnce && mockServer.acceptedSeq >= 1) {
+              mockServer.injectSeqGapOnce = false;
+              const rollbackTo = Math.max(0, mockServer.appliedSeq);
+              mockServer.acceptedSeq = rollbackTo;
+              mockServer.expectedSeq = rollbackTo + 1;
+              logMock(`⚠️ 模擬 409 sequence_gap，要求從 expected_seq=${mockServer.expectedSeq} 補送`);
+              return {
+                status: 409,
+                json: Object.assign(buildSnapshot(), { code: "sequence_gap" }),
+              };
+            }
+
+            const results = [];
+            for (let i = 0; i < states.length; i++) {
+              const st = states[i];
+              if (!st || st.prev_seq !== st.seq - 1 || st.seq <= 0) {
+                return { status: 422, json: { code: "invalid_sequence" } };
+              }
+              if (st.seq <= mockServer.acceptedSeq) {
+                const prev = mockServer.acceptedStates.get(st.seq);
+                if (
+                  prev &&
+                  prev.text === st.text &&
+                  prev.selection_start === st.selection_start &&
+                  prev.selection_end === st.selection_end &&
+                  prev.composition === st.composition
+                ) {
+                  logMock(`♻️ 收到同序號 #${st.seq} 同內容重送 → 安全去重不重複套用`);
+                  results.push({
+                    seq: st.seq,
+                    seq_status: st.seq <= mockServer.appliedSeq ? "applied" : "accepted",
+                    reason: null,
+                    proof: st.seq <= mockServer.appliedSeq ? "verified_readback" : null,
+                  });
+                  continue;
+                } else {
+                  mockServer.phase = "PAUSED";
+                  mockServer.reason = "sequence_conflict";
+                  mockServer.targetEpoch = null;
+                  logMock(`❌ 序號 #${st.seq} 內容衝突 (sequence_conflict)`);
+                  return {
+                    status: 409,
+                    json: Object.assign(buildSnapshot(), { code: "sequence_conflict" }),
+                  };
+                }
+              }
+
+              if (st.seq !== mockServer.acceptedSeq + 1) {
+                return {
+                  status: 409,
+                  json: Object.assign(buildSnapshot(), { code: "sequence_gap" }),
+                };
+              }
+
+              mockServer.acceptedSeq = st.seq;
+              mockServer.acceptedStates.set(st.seq, st);
+              results.push({
+                seq: st.seq,
+                seq_status: "accepted",
+                reason: null,
+                proof: null,
+              });
+            }
+
+            const firstSeq = states[0].seq;
+            const lastSeq = states[states.length - 1].seq;
+            logMock(
+              `POST /states [seq ${firstSeq}..${lastSeq}] text="${states[states.length - 1].text}"`
+            );
+            scheduleNextNativeApply();
+
+            return {
+              status: 200,
+              json: buildSnapshot({ results }),
+            };
+          }
+
+          if (method === "POST" && path === "/api/realtime/enter") {
+            if (!mockServer.capability || capHeader !== mockServer.capability) {
+              return { status: 403, json: { code: "invalid_capability" } };
+            }
+            if (body.v !== undefined && body.v !== null && body.v !== 1) {
+              return { status: 400, json: { code: "unsupported_version" } };
+            }
+            if (
+              !body ||
+              typeof body.enter_id !== "string" ||
+              !/^[0-9a-f]{32}$/.test(body.enter_id) ||
+              typeof body.after_seq !== "number" ||
+              !Number.isInteger(body.after_seq) ||
+              body.after_seq < 0 ||
+              typeof body.hold_ms !== "number" ||
+              !Number.isFinite(body.hold_ms)
+            ) {
+              return { status: 400, json: { code: "invalid_json" } };
+            }
+            if (body.request_id !== mockServer.requestId) {
+              return {
+                status: 409,
+                json: Object.assign(buildSnapshot(), { code: "request_mismatch" }),
+              };
+            }
+
+            // 規格 §5：同 enter_id 重送去重檢查（同 id 同內容回傳既有狀態不重複執行；同 id 不同內容回 409 sequence_conflict）
+            if (mockServer.processedEnterIds.has(body.enter_id)) {
+              const prevEnter = mockServer.processedEnterIds.get(body.enter_id);
+              if (
+                prevEnter.request_id === body.request_id &&
+                prevEnter.target_epoch === body.target_epoch &&
+                prevEnter.after_seq === body.after_seq
+              ) {
+                mockServer.phase = "PAUSED";
+                mockServer.reason = "enter_sent";
+                mockServer.targetEpoch = null;
+                mockServer.lastEnterSnapshot = {
+                  enter_id: body.enter_id,
+                  status: "applied",
+                };
+                logMock(
+                  `♻️ 收到同 enter_id (${body.enter_id.slice(0, 8)}…) 重送 → 安全去重，不重複送出 Enter（計數維持 ${mockServer.enterCount}）`
+                );
+                const snap = buildSnapshot({
+                  enter: mockServer.lastEnterSnapshot,
+                });
+                emitSSE(snap);
+                return { status: 200, json: snap };
+              } else {
+                mockServer.phase = "PAUSED";
+                mockServer.reason = "sequence_conflict";
+                mockServer.targetEpoch = null;
+                logMock(`❌ 同 enter_id (${body.enter_id.slice(0, 8)}…) 內容不符 → 409 sequence_conflict`);
+                return {
+                  status: 409,
+                  json: Object.assign(buildSnapshot(), { code: "sequence_conflict" }),
+                };
+              }
+            }
+
+            if (mockServer.phase !== "ACTIVE") {
+              return {
+                status: 409,
+                json: Object.assign(buildSnapshot(), { code: "invalid_phase" }),
+              };
+            }
+            if (body.target_epoch !== mockServer.targetEpoch) {
+              return {
+                status: 409,
+                json: Object.assign(buildSnapshot(), { code: "epoch_mismatch" }),
+              };
+            }
+            if (!computeEnterAvailable()) {
+              logMock("⚠️ 拒絕 POST /enter → 409 enter_disabled（電腦端未開啟或目標欄位禁用）");
+              return {
+                status: 409,
+                json: Object.assign(buildSnapshot(), { code: "enter_disabled" }),
+              };
+            }
+            if (body.hold_ms < 600) {
+              logMock(`⚠️ 拒絕 POST /enter → 422 invalid_hold (hold_ms=${body.hold_ms} < 600)`);
+              return {
+                status: 422,
+                json: Object.assign(buildSnapshot(), { code: "invalid_hold" }),
+              };
+            }
+            if (
+              mockServer.forceTextPending ||
+              body.after_seq !== mockServer.acceptedSeq ||
+              mockServer.acceptedSeq !== mockServer.appliedSeq ||
+              mockServer.applyTimer !== null
+            ) {
+              logMock(
+                `⚠️ 拒絕 POST /enter → 409 text_pending (after_seq=${body.after_seq}, accepted=${mockServer.acceptedSeq}, applied=${mockServer.appliedSeq})`
+              );
+              return {
+                status: 409,
+                json: Object.assign(buildSnapshot(), { code: "text_pending" }),
+              };
+            }
+            if (mockServer.enterInFlight) {
+              logMock("⚠️ 拒絕 POST /enter → 409 busy（已有一個 enter 在途）");
+              return {
+                status: 409,
+                json: Object.assign(buildSnapshot(), { code: "busy" }),
+              };
+            }
+
+            const now = Date.now();
+            if (mockServer.injectEnterRateLimitOnce || now - mockServer.lastEnterTime < 1000) {
+              const waitMs = mockServer.injectEnterRateLimitOnce
+                ? 800
+                : Math.max(100, 1000 - (now - mockServer.lastEnterTime));
+              mockServer.injectEnterRateLimitOnce = false;
+              logMock(`⚠️ 拒絕 POST /enter → 429 rate_limited (retry_after_ms: ${waitMs}ms)`);
+              return {
+                status: 429,
+                json: Object.assign(buildSnapshot({ retry_after_ms: waitMs }), {
+                  code: "rate_limited",
+                  retry_after_ms: waitMs,
+                }),
+              };
+            }
+
+            if (mockServer.injectEnterTimeoutOnce) {
+              mockServer.injectEnterTimeoutOnce = false;
+              mockServer.lastEnterTime = now;
+              mockServer.enterCount += 1;
+              mockServer.processedEnterIds.set(body.enter_id, {
+                request_id: body.request_id,
+                target_epoch: body.target_epoch,
+                after_seq: body.after_seq,
+                hold_ms: body.hold_ms,
+                status: "applied",
+              });
+              updateDesktopUI(`[VK_RETURN] 已收到 Enter (#${mockServer.enterCount}，模擬首次回應逾時)`);
+              logMock(
+                `⚠️ 模擬 POST /enter 網路逾時（後端已執行 Enter #${mockServer.enterCount} 並記錄 enter_id=${body.enter_id.slice(0, 8)}…，等待手機同 id 重送去重）`
+              );
+              return { status: 408, json: { code: "bad_request" } };
+            }
+
+            // 正常執行單一 VK_RETURN，成功後立即將本 epoch 轉為 PAUSED (reason: enter_sent)
+            mockServer.lastEnterTime = now;
+            mockServer.enterCount += 1;
+            mockServer.processedEnterIds.set(body.enter_id, {
+              request_id: body.request_id,
+              target_epoch: body.target_epoch,
+              after_seq: body.after_seq,
+              hold_ms: body.hold_ms,
+              status: "applied",
+            });
+            mockServer.lastEnterSnapshot = {
+              enter_id: body.enter_id,
+              status: "applied",
+            };
+            mockServer.phase = "PAUSED";
+            mockServer.reason = "enter_sent";
+            mockServer.targetEpoch = null;
+
+            updateDesktopUI(`[VK_RETURN] 已送出單一 Enter（累計 ${mockServer.enterCount} 次）`);
+            logMock(
+              `⏎ POST /enter 成功 (enter_id=${body.enter_id.slice(0, 8)}…, after_seq=${body.after_seq}, hold_ms=${body.hold_ms}ms) → 收到 Enter 次數=${mockServer.enterCount}，轉入 PAUSED (enter_sent)`
+            );
+
+            const snap = buildSnapshot({
+              enter: mockServer.lastEnterSnapshot,
+            });
+            emitSSE(snap);
+            return { status: 200, json: snap };
+          }
+
+          return { status: 404, json: { code: "not_found" } };
+        }
+
+        // 攔截 fetch
+        window.fetch = async function (input, init = {}) {
+          const rawUrl = typeof input === "string" ? input : (input && input.url) || "";
+          const urlObj = new URL(rawUrl, location.origin);
+          if (urlObj.pathname.startsWith("/api/realtime/")) {
+            const method = (init.method || "GET").toUpperCase();
+            const headers = init.headers || {};
+            const bodyText = typeof init.body === "string" ? init.body : "";
+            await new Promise((r) => setTimeout(r, mockServer.networkLatencyMs));
+            const result = handleRealtimeRoute(method, urlObj.pathname, headers, bodyText);
+            return new Response(JSON.stringify(result.json), {
+              status: result.status,
+              headers: { "Content-Type": "application/json" },
+            });
+          }
+          if (originalFetch) {
+            return originalFetch(input, init);
+          }
+          throw new Error("Mock fetch: unhandled URL");
+        };
+
+        // 攔截 XMLHttpRequest 對 /api/realtime/* 的呼叫
+        function MockXHR() {
+          const xhr = OriginalXHR ? new OriginalXHR() : {};
+          let isRealtime = false;
+          let reqMethod = "GET";
+          let reqPath = "";
+          const reqHeaders = {};
+
+          const origOpen = xhr.open ? xhr.open.bind(xhr) : null;
+          const origSetHeader = xhr.setRequestHeader ? xhr.setRequestHeader.bind(xhr) : null;
+          const origSend = xhr.send ? xhr.send.bind(xhr) : null;
+
+          xhr.open = function (method, url, ...rest) {
+            const u = new URL(url, location.origin);
+            if (u.pathname.startsWith("/api/realtime/")) {
+              isRealtime = true;
+              reqMethod = String(method || "GET").toUpperCase();
+              reqPath = u.pathname;
+              return;
+            }
+            if (origOpen) return origOpen(method, url, ...rest);
+          };
+
+          xhr.setRequestHeader = function (k, v) {
+            if (isRealtime) {
+              reqHeaders[k] = v;
+              return;
+            }
+            if (origSetHeader) return origSetHeader(k, v);
+          };
+
+          xhr.send = function (body) {
+            if (!isRealtime) {
+              if (origSend) return origSend(body);
+              return;
+            }
+            setTimeout(() => {
+              const res = handleRealtimeRoute(
+                reqMethod,
+                reqPath,
+                reqHeaders,
+                typeof body === "string" ? body : ""
+              );
+              Object.defineProperty(xhr, "status", { value: res.status, configurable: true });
+              Object.defineProperty(xhr, "responseText", {
+                value: JSON.stringify(res.json),
+                configurable: true,
+              });
+              if (typeof xhr.onload === "function") xhr.onload();
+              xhr.dispatchEvent(new Event("load"));
+            }, mockServer.networkLatencyMs);
+          };
+
+          return xhr;
+        }
+        window.XMLHttpRequest = MockXHR;
+
+        // 攔截 EventSource('/api/events')
+        class MockEventSource {
+          constructor(url) {
+            this.url = url;
+            this.readyState = 1; // OPEN
+            this.listeners = new Map();
+            mockServer.sseClients.add(this);
+            setTimeout(() => {
+              if (typeof this.onopen === "function") {
+                this.onopen(new Event("open"));
+              }
+            }, 10);
+          }
+          addEventListener(type, fn) {
+            if (!this.listeners.has(type)) {
+              this.listeners.set(type, new Set());
+            }
+            this.listeners.get(type).add(fn);
+          }
+          removeEventListener(type, fn) {
+            if (this.listeners.has(type)) {
+              this.listeners.get(type).delete(fn);
+            }
+          }
+          close() {
+            this.readyState = 2; // CLOSED
+            mockServer.sseClients.delete(this);
+          }
+          _dispatch(type, data, lastEventId) {
+            if (this.readyState !== 1) return;
+            const fns = this.listeners.get(type);
+            if (!fns) return;
+            const evt = new MessageEvent(type, { data, lastEventId });
+            fns.forEach((fn) => {
+              try {
+                fn(evt);
+              } catch (_) {}
+            });
+          }
+        }
+        MockEventSource.CONNECTING = 0;
+        MockEventSource.OPEN = 1;
+        MockEventSource.CLOSED = 2;
+        window.EventSource = MockEventSource;
+
+        // 暴露控制台動作供下方 Demo UI 綁定
+        window.__MockRealtimeController = {
+          grant() {
+            if (mockServer.phase !== "REQUESTED") {
+              logMock("提示：請先在左方點「開始實時輸入」產生請求，再按電腦核准");
+              return;
+            }
+            mockServer.phase = "ARMED";
+            mockServer.grantTime = Date.now();
+            logMock("✅ 電腦端已按「核准」(grant) → 進入 ARMED，5 分鐘租約開始");
+            emitSSE(buildSnapshot());
+          },
+          bindNewEpoch() {
+            if (
+              mockServer.phase !== "ARMED" &&
+              mockServer.phase !== "PAUSED" &&
+              mockServer.phase !== "ACTIVE"
+            ) {
+              logMock("提示：需先完成核准 (ARMED / PAUSED / ACTIVE) 才能綁定目標欄位");
+              return;
+            }
+            clearTimeout(mockServer.applyTimer);
+            mockServer.applyTimer = null;
+            // 將前一段已套用的文字併入電腦端欄位前綴 P，模擬游標接續或新欄位起點
+            mockServer.prefixP = mockServer.prefixP + mockServer.currentS;
+            mockServer.currentS = "";
+            mockServer.epochCounter += 1;
+            mockServer.targetEpoch = `epoch_${mockServer.epochCounter}`;
+            mockServer.phase = "BINDING";
+            mockServer.acceptedSeq = 0;
+            mockServer.appliedSeq = 0;
+            mockServer.expectedSeq = 1;
+            mockServer.seqStatus = null;
+            mockServer.proof = null;
+            mockServer.reason = null;
+            mockServer.lastEnterSnapshot = null;
+            mockServer.acceptedStates.clear();
+            mockServer.processedEnterIds.clear();
+
+            logMock(
+              `🖱️ 電腦端點選目標欄位 → target_bound(binding) epoch=${mockServer.targetEpoch}, app_label="${mockServer.targetApp}", enter_allowed=${mockServer.enterAllowed}`
+            );
+            emitSSE(buildSnapshot());
+          },
+          toggleVirtualEnter(btn) {
+            mockServer.capabilities.virtual_enter = !mockServer.capabilities.virtual_enter;
+            const enabled = mockServer.capabilities.virtual_enter;
+            if (btn) {
+              btn.textContent = `電腦端允許虛擬 Enter：目前【${enabled ? "開" : "關"}】`;
+              btn.classList.toggle("demo-btn-active", enabled);
+            }
+            logMock(
+              `⚙️ 電腦端設定 capabilities{virtual_enter: ${enabled}} → enter_available=${computeEnterAvailable()}`
+            );
+            emitSSE(buildSnapshot());
+          },
+          toggleTargetEnterAllowed(btn) {
+            mockServer.enterAllowed = !mockServer.enterAllowed;
+            const allowed = mockServer.enterAllowed;
+            if (btn) {
+              btn.textContent = `目標欄位 enter_allowed：目前【${allowed ? "開" : "關"}】`;
+              btn.classList.toggle("demo-btn-active", !allowed);
+            }
+            logMock(
+              `🎯 目標欄位 enter_allowed 設為 ${allowed} → enter_available=${computeEnterAvailable()}`
+            );
+            emitSSE(buildSnapshot());
+          },
+          toggleForceTextPending(btn) {
+            mockServer.forceTextPending = !mockServer.forceTextPending;
+            const active = mockServer.forceTextPending;
+            if (btn) {
+              btn.textContent = `強制 Enter 回 text_pending：目前【${active ? "開" : "關"}】`;
+              btn.classList.toggle("demo-btn-active", active);
+            }
+            logMock(`🧪 強制 POST /enter 回傳 409 text_pending：${active ? "開啟" : "關閉"}`);
+          },
+          armEnterTimeout() {
+            mockServer.injectEnterTimeoutOnce = true;
+            logMock("🧪 已排程：下一次 POST /enter 將模擬 408 網路逾時（驗證同 enter_id 重送只計一次）");
+          },
+          armEnterRateLimit() {
+            mockServer.injectEnterRateLimitOnce = true;
+            logMock("🧪 已排程：下一次 POST /enter 將回傳 429 rate_limited（手機不得自動重送）");
+          },
+          setPreloadContext() {
+            mockServer.prefixP = "Hello ";
+            mockServer.suffixQ = " World";
+            updateDesktopUI("已設定前後文 P='Hello ', Q=' World'", 0, 0);
+            logMock("已設定電腦欄位前後文 P='Hello ', Q=' World'");
+          },
+          clearPcField() {
+            mockServer.prefixP = "";
+            mockServer.currentS = "";
+            mockServer.suffixQ = "";
+            mockServer.enterCount = 0;
+            updateDesktopUI("已清空電腦欄位並重設 Enter 計數", 0, 0);
+            logMock("已清空電腦端模擬輸入框並將 Enter 次數歸零");
+          },
+          toggleLatency(btn) {
+            mockServer.networkLatencyMs = mockServer.networkLatencyMs === 20 ? 350 : 20;
+            mockServer.applyDelayMs = mockServer.networkLatencyMs === 20 ? 30 : 180;
+            btn.textContent = `切換網路延遲：目前 ${mockServer.networkLatencyMs}ms`;
+            btn.classList.toggle("demo-btn-active", mockServer.networkLatencyMs > 50);
+            logMock(`網路延遲已設為 ${mockServer.networkLatencyMs}ms`);
+          },
+          armRateLimit() {
+            mockServer.injectRateLimitOnce = true;
+            logMock("已排程：下一次 POST /states 將回傳 429 rate_limited");
+          },
+          armSeqGap() {
+            mockServer.injectSeqGapOnce = true;
+            logMock("已排程：下一次 POST /states 將回傳 409 sequence_gap");
+          },
+          armTimeout() {
+            mockServer.injectTimeoutOnce = true;
+            logMock("已排程：下一次 POST /states 將模擬 408 網路逾時／結果不明");
+          },
+          armQueueFull() {
+            mockServer.injectQueueFullOnce = true;
+            logMock("已排程：下一次 POST /states 將回傳 429 queue_full");
+          },
+          triggerPause(reason) {
+            clearTimeout(mockServer.applyTimer);
+            mockServer.applyTimer = null;
+            mockServer.phase = "PAUSED";
+            mockServer.reason = reason;
+            mockServer.targetEpoch = null;
+            logMock(`⏸️ 電腦端觸發 PAUSED (reason=${reason})`);
+            emitSSE(buildSnapshot());
+          },
+          triggerUnknown() {
+            clearTimeout(mockServer.applyTimer);
+            mockServer.applyTimer = null;
+            mockServer.phase = "UNKNOWN";
+            mockServer.seqStatus = "unknown";
+            mockServer.reason = "unknown";
+            mockServer.targetEpoch = null;
+            logMock("❓ 電腦端觸發 UNKNOWN（最後一筆套用結果不明）");
+            emitSSE(buildSnapshot());
+          },
+          triggerRevoke(reason) {
+            clearTimeout(mockServer.applyTimer);
+            mockServer.applyTimer = null;
+            mockServer.phase = "REVOKED";
+            mockServer.reason = reason || "heartbeat_timeout";
+            mockServer.targetEpoch = null;
+            mockServer.capability = null;
+            logMock(`🛑 電腦端觸發 REVOKED (reason=${mockServer.reason})`);
+            emitSSE(buildSnapshot());
+          },
+          triggerResync() {
+            logMock("🔄 發送 SSE reset_required / resync_required 事件");
+            emitSSE({
+              event_id: mockServer.eventId++,
+              reset_required: true,
+              code: "resync_required",
+            });
+          },
+        };
+
+        window.addEventListener("DOMContentLoaded", () => {
+          updateDesktopUI();
+          logMock("Mock 協定環境已就緒。請點擊左側「開始實時輸入」體驗完整流程。");
+        });
+      })();
+    </script>
+
+    <script src="./realtime.js" defer></script>
+
+    <!-- Demo 頁面互動按鈕與分頁切換綁定 -->
+    <script>
+      window.addEventListener("DOMContentLoaded", () => {
+        const ctrl = window.__MockRealtimeController;
+        const byId = (id) => document.getElementById(id);
+
+        // 分頁切換展示（驗證 window.FastInputRealtime.activate / deactivate）
+        const tabText = byId("demoTabText");
+        const tabFiles = byId("demoTabFiles");
+        const tabRealtime = byId("demoTabRealtime");
+        const panelText = byId("demoTextPlaceholder");
+        const panelFiles = byId("demoFilesPlaceholder");
+        const panelRealtime = byId("realtimeCard");
+
+        function switchDemoTab(which) {
+          const isRt = which === "realtime";
+          const isFiles = which === "files";
+          const isText = which === "text";
+
+          tabText.setAttribute("aria-selected", String(isText));
+          tabFiles.setAttribute("aria-selected", String(isFiles));
+          tabRealtime.setAttribute("aria-selected", String(isRt));
+
+          panelText.hidden = !isText;
+          panelFiles.hidden = !isFiles;
+          panelRealtime.hidden = !isRt;
+
+          if (window.FastInputRealtime) {
+            if (isRt) {
+              window.FastInputRealtime.activate();
+            } else {
+              window.FastInputRealtime.deactivate();
+            }
+          }
+        }
+
+        tabText.addEventListener("click", () => switchDemoTab("text"));
+        tabFiles.addEventListener("click", () => switchDemoTab("files"));
+        tabRealtime.addEventListener("click", () => switchDemoTab("realtime"));
+
+        // 電腦端模擬控制按鈕
+        byId("mockBtnApprove").addEventListener("click", () => ctrl.grant());
+        byId("mockBtnBind").addEventListener("click", () => ctrl.bindNewEpoch());
+
+        const btnToggleVE = byId("mockBtnToggleVirtualEnter");
+        btnToggleVE.addEventListener("click", () => ctrl.toggleVirtualEnter(btnToggleVE));
+
+        const btnToggleTargetEnter = byId("mockBtnToggleTargetEnter");
+        btnToggleTargetEnter.addEventListener("click", () =>
+          ctrl.toggleTargetEnterAllowed(btnToggleTargetEnter)
+        );
+
+        byId("mockBtnPreloadText").addEventListener("click", () => ctrl.setPreloadContext());
+        byId("mockBtnClearPc").addEventListener("click", () => ctrl.clearPcField());
+
+        const btnForceTextPending = byId("mockBtnForceTextPending");
+        btnForceTextPending.addEventListener("click", () =>
+          ctrl.toggleForceTextPending(btnForceTextPending)
+        );
+        byId("mockBtnEnterTimeout").addEventListener("click", () => ctrl.armEnterTimeout());
+        byId("mockBtnEnterRateLimit").addEventListener("click", () => ctrl.armEnterRateLimit());
+
+        const latencyBtn = byId("mockBtnLatency");
+        latencyBtn.addEventListener("click", () => ctrl.toggleLatency(latencyBtn));
+        byId("mockBtnRateLimit").addEventListener("click", () => ctrl.armRateLimit());
+        byId("mockBtnSeqGap").addEventListener("click", () => ctrl.armSeqGap());
+        byId("mockBtnTimeout").addEventListener("click", () => ctrl.armTimeout());
+        byId("mockBtnQueueFull").addEventListener("click", () => ctrl.armQueueFull());
+        byId("mockBtnFocusChanged").addEventListener("click", () => ctrl.triggerPause("focus_changed"));
+        byId("mockBtnContentDiverged").addEventListener("click", () => ctrl.triggerPause("content_diverged"));
+        byId("mockBtnPhysicalInput").addEventListener("click", () => ctrl.triggerPause("physical_input"));
+        byId("mockBtnEmergencyStop").addEventListener("click", () => ctrl.triggerRevoke("emergency_stop"));
+        byId("mockBtnUnknown").addEventListener("click", () => ctrl.triggerUnknown());
+        byId("mockBtnRevoke").addEventListener("click", () => ctrl.triggerRevoke("heartbeat_timeout"));
+        byId("mockBtnResync").addEventListener("click", () => ctrl.triggerResync());
+
+        // 手機端快速輸入測試按鈕
+        function simulateInputStep(textarea, nextValue, selStart, selEnd, inputType) {
+          const beforeEvt = new InputEvent("beforeinput", {
+            bubbles: true,
+            cancelable: true,
+            inputType: inputType || "insertText",
+          });
+          const notCancelled = textarea.dispatchEvent(beforeEvt);
+          if (!notCancelled) return false;
+          textarea.value = nextValue;
+          textarea.setSelectionRange(selStart, selEnd);
+          textarea.dispatchEvent(
+            new InputEvent("input", {
+              bubbles: true,
+              inputType: inputType || "insertText",
+            })
+          );
+          return true;
+        }
+
+        byId("demoSimGoagle").addEventListener("click", async () => {
+          const ta = byId("rtInput");
+          if (!ta || ta.readOnly) return;
+          const steps = [
+            ["G", 1, 1, "insertText"],
+            ["Go", 2, 2, "insertText"],
+            ["Goa", 3, 3, "insertText"],
+            ["Goag", 4, 4, "insertText"],
+            ["Goagl", 5, 5, "insertText"],
+            ["Goagle", 6, 6, "insertText"],
+            ["Gogle", 2, 2, "deleteContentBackward"],
+            ["Google", 3, 3, "insertText"],
+          ];
+          for (const [val, s, e, kind] of steps) {
+            simulateInputStep(ta, val, s, e, kind);
+            await new Promise((r) => setTimeout(r, 70));
+          }
+        });
+
+        byId("demoSimTyping").addEventListener("click", async () => {
+          const ta = byId("rtInput");
+          if (!ta || ta.readOnly) return;
+          const steps = [
+            ["實", 1, 1, "insertText"],
+            ["實時", 2, 2, "insertText"],
+            ["實時輸入", 4, 4, "insertText"],
+            ["實時輸入錯", 5, 5, "insertText"],
+            ["實時輸入", 4, 4, "deleteContentBackward"],
+            ["實時輸入測試😀", 8, 8, "insertText"],
+          ];
+          for (const [val, s, e, kind] of steps) {
+            simulateInputStep(ta, val, s, e, kind);
+            await new Promise((r) => setTimeout(r, 80));
+          }
+        });
+
+        byId("demoSimLongText").addEventListener("click", () => {
+          const ta = byId("rtInput");
+          if (!ta || ta.readOnly) return;
+          const unit = "FastInput手機打字電腦即現測試段落0123456789";
+          const longStr = unit.repeat(10); // 300 字元
+          simulateInputStep(ta, longStr, longStr.length, longStr.length, "insertFromPaste");
+        });
+
+        byId("demoSimNewline").addEventListener("click", () => {
+          const ta = byId("rtInput");
+          if (!ta || ta.readOnly) return;
+          simulateInputStep(ta, "第一行\n第二行", 7, 7, "insertFromPaste");
+        });
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,783 @@
+#realtimeCard {
+  padding: 24px;
+  border: 1px solid rgba(190, 209, 195, .72);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  min-width: 0;
+  overflow: hidden;
+}
+
+#realtimeCard .rt-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+#realtimeCard .rt-heading-group {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  min-width: 0;
+}
+
+#realtimeCard .rt-icon-badge {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+#realtimeCard .rt-title {
+  margin: 5px 0 0;
+  font-size: 1.15rem;
+  letter-spacing: -.035em;
+  color: var(--ink);
+}
+
+#realtimeCard .rt-header-badges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+#realtimeCard .rt-phase-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: var(--surface-deep);
+  color: var(--ink-soft);
+  font-size: .75rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+#realtimeCard .rt-phase-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+
+#realtimeCard .rt-phase-pill[data-phase="ACTIVE"] {
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+}
+
+#realtimeCard .rt-phase-pill[data-phase="ACTIVE"] .rt-phase-dot {
+  background: #42ad7b;
+  box-shadow: 0 0 0 4px rgba(66, 173, 123, .16);
+}
+
+#realtimeCard .rt-phase-pill[data-phase="REQUESTED"],
+#realtimeCard .rt-phase-pill[data-phase="ARMED"],
+#realtimeCard .rt-phase-pill[data-phase="BINDING"],
+#realtimeCard .rt-phase-pill[data-phase="PAUSED"] {
+  background: var(--warm);
+  color: var(--warm-ink);
+}
+
+#realtimeCard .rt-phase-pill[data-phase="REQUESTED"] .rt-phase-dot,
+#realtimeCard .rt-phase-pill[data-phase="ARMED"] .rt-phase-dot,
+#realtimeCard .rt-phase-pill[data-phase="BINDING"] .rt-phase-dot,
+#realtimeCard .rt-phase-pill[data-phase="PAUSED"] .rt-phase-dot {
+  background: #d9945d;
+}
+
+#realtimeCard .rt-phase-pill[data-phase="UNKNOWN"],
+#realtimeCard .rt-phase-pill[data-phase="REVOKED"] {
+  background: #fff1ec;
+  color: var(--danger);
+}
+
+#realtimeCard .rt-phase-pill[data-phase="UNKNOWN"] .rt-phase-dot,
+#realtimeCard .rt-phase-pill[data-phase="REVOKED"] .rt-phase-dot {
+  background: var(--danger);
+}
+
+#realtimeCard .rt-lease-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 5px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-soft);
+  color: var(--ink-soft);
+  font-size: .74rem;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+#realtimeCard .rt-lease-pill.is-low {
+  border-color: #e6d1a9;
+  background: var(--warm);
+  color: var(--warm-ink);
+}
+
+#realtimeCard .rt-description {
+  margin: 12px 0 16px;
+  color: var(--ink-soft);
+  font-size: .84rem;
+  line-height: 1.65;
+}
+
+/* Status & Instruction Banner */
+#realtimeCard .rt-status-box {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface-soft);
+}
+
+#realtimeCard .rt-status-box.is-active {
+  border-color: rgba(22, 125, 105, .35);
+  background: var(--accent-soft);
+}
+
+#realtimeCard .rt-status-box.is-warning {
+  border-color: #e6d1a9;
+  background: var(--warm);
+  color: var(--warm-ink);
+}
+
+#realtimeCard .rt-status-box.is-danger {
+  border-color: rgba(164, 75, 67, .35);
+  background: #fff1ec;
+  color: var(--danger);
+}
+
+#realtimeCard .rt-status-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+#realtimeCard .rt-status-copy {
+  flex: 1;
+  min-width: 180px;
+}
+
+#realtimeCard .rt-status-title {
+  display: block;
+  margin: 0 0 4px;
+  color: var(--ink);
+  font-size: .95rem;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+#realtimeCard .rt-status-box.is-warning .rt-status-title {
+  color: var(--warm-ink);
+}
+
+#realtimeCard .rt-status-box.is-danger .rt-status-title {
+  color: var(--danger);
+}
+
+#realtimeCard .rt-status-detail {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: .82rem;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+#realtimeCard .rt-status-box.is-warning .rt-status-detail {
+  color: var(--warm-ink);
+}
+
+#realtimeCard .rt-status-box.is-danger .rt-status-detail {
+  color: var(--danger);
+}
+
+#realtimeCard .rt-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+#realtimeCard .rt-btn {
+  min-height: 42px;
+  padding: 8px 16px;
+  font-size: .83rem;
+}
+
+/* Check Code Box */
+#realtimeCard .rt-checkcode-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: var(--surface);
+}
+
+#realtimeCard .rt-checkcode-label {
+  color: var(--ink-soft);
+  font-size: .8rem;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+#realtimeCard .rt-checkcode-digits {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 10px;
+  background: var(--warm);
+  color: var(--warm-ink);
+  font-size: 1.65rem;
+  font-weight: 850;
+  letter-spacing: .18em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Inline Alert / Input Warning */
+#realtimeCard .rt-alert {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding: 11px 14px;
+  border: 1px solid rgba(164, 75, 67, .35);
+  border-radius: 12px;
+  background: #fff1ec;
+  color: var(--danger);
+  font-size: .8rem;
+  line-height: 1.5;
+}
+
+#realtimeCard .rt-alert-text {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+#realtimeCard .rt-alert-close {
+  flex: none;
+  min-height: 40px;
+  min-width: 40px;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font-size: .78rem;
+  font-weight: 800;
+}
+
+#realtimeCard .rt-alert-close:hover:not(:disabled) {
+  text-decoration: underline;
+}
+
+/* Locked / Grayed-out Previous Segments */
+#realtimeCard .rt-locked-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+#realtimeCard .rt-locked-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--muted);
+  font-size: .75rem;
+  font-weight: 700;
+}
+
+#realtimeCard .rt-locked-clear {
+  min-height: 40px;
+  padding: 4px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  font-size: .75rem;
+  font-weight: 750;
+}
+
+#realtimeCard .rt-locked-clear:hover:not(:disabled) {
+  background: var(--surface-deep);
+  color: var(--ink);
+}
+
+#realtimeCard .rt-locked-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+#realtimeCard .rt-locked-item {
+  padding: 10px 13px;
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+  background: var(--surface-soft);
+  color: var(--muted);
+}
+
+#realtimeCard .rt-locked-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+  font-size: .72rem;
+  font-weight: 700;
+}
+
+#realtimeCard .rt-locked-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: var(--surface-deep);
+  color: var(--ink-soft);
+  font-size: .69rem;
+  font-weight: 800;
+}
+
+#realtimeCard .rt-locked-text {
+  margin: 0;
+  font-size: .9rem;
+  line-height: 1.6;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  user-select: text;
+}
+
+/* Active Input Area */
+#realtimeCard .rt-input-wrap {
+  position: relative;
+  border: 1.5px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  overflow: hidden;
+  transition: border-color .16s ease, background-color .16s ease;
+}
+
+#realtimeCard .rt-input-wrap.is-active {
+  border-color: var(--accent);
+}
+
+#realtimeCard .rt-input-wrap.is-locked {
+  border-style: dashed;
+  background: var(--surface-soft);
+}
+
+#realtimeCard .rt-textarea {
+  display: block;
+  width: 100%;
+  min-height: 150px;
+  padding: 16px 18px;
+  border: 0;
+  outline: 0;
+  resize: vertical;
+  background: transparent;
+  color: var(--ink);
+  font-size: 1.05rem;
+  font-weight: 450;
+  line-height: 1.75;
+  overflow-wrap: anywhere;
+}
+
+#realtimeCard .rt-textarea::placeholder {
+  color: var(--muted);
+  opacity: .85;
+}
+
+#realtimeCard .rt-textarea:read-only,
+#realtimeCard .rt-textarea:disabled {
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+#realtimeCard .rt-input-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 10px 16px;
+  border-top: 1px solid var(--line);
+  background: var(--surface-soft);
+  color: var(--muted);
+  font-size: .74rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+#realtimeCard .rt-sync-progress {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink-soft);
+  font-weight: 750;
+}
+
+#realtimeCard .rt-char-counter {
+  margin-left: auto;
+}
+
+#realtimeCard .rt-char-counter.is-near-limit {
+  color: var(--warm-ink);
+  font-weight: 800;
+}
+
+#realtimeCard .rt-char-counter.is-at-limit {
+  color: var(--danger);
+  font-weight: 800;
+}
+
+/* Virtual Enter Long-Press Section */
+#realtimeCard .rt-enter-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface-soft);
+  min-width: 0;
+}
+
+#realtimeCard .rt-enter-section.is-holding {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+#realtimeCard .rt-enter-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+#realtimeCard .rt-enter-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--surface-deep);
+  color: var(--accent-dark);
+  font-size: .72rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+#realtimeCard .rt-enter-desc {
+  color: var(--ink-soft);
+  font-size: .76rem;
+  font-weight: 650;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+#realtimeCard .rt-enter-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 52px;
+  min-width: 48px;
+  padding: 10px 18px;
+  border: 1.5px solid var(--accent);
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: .92rem;
+  font-weight: 800;
+  line-height: 1.35;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  transition: transform .12s ease, background-color .15s ease, border-color .15s ease;
+}
+
+#realtimeCard .rt-enter-btn:hover:not(:disabled) {
+  background: var(--surface-deep);
+}
+
+#realtimeCard .rt-enter-btn.is-holding {
+  border-color: var(--accent-dark);
+  background: var(--surface);
+  color: var(--accent-dark);
+  transform: scale(.99);
+}
+
+#realtimeCard .rt-enter-btn:disabled,
+#realtimeCard .rt-enter-btn.is-locked {
+  border-color: var(--line);
+  background: var(--surface-soft);
+  color: var(--muted);
+  cursor: not-allowed;
+  opacity: .65;
+}
+
+#realtimeCard .rt-enter-ring {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 34px;
+  height: 34px;
+}
+
+#realtimeCard .rt-enter-ring-svg {
+  width: 34px;
+  height: 34px;
+  transform: rotate(-90deg);
+}
+
+#realtimeCard .rt-enter-ring-track {
+  fill: none;
+  stroke: var(--line);
+  stroke-width: 3.2;
+}
+
+#realtimeCard .rt-enter-ring-fill {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 3.4;
+  stroke-linecap: round;
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  transition: stroke-dashoffset .12s ease-out;
+}
+
+#realtimeCard .rt-enter-btn.is-holding .rt-enter-ring-fill {
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 600ms linear;
+}
+
+#realtimeCard .rt-enter-ring-icon {
+  position: absolute;
+  font-size: .95rem;
+  font-weight: 850;
+  line-height: 1;
+  color: var(--accent);
+}
+
+#realtimeCard .rt-enter-btn-label {
+  overflow-wrap: anywhere;
+}
+
+#realtimeCard .rt-enter-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border: 1px solid rgba(22, 125, 105, .32);
+  border-radius: 11px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: .8rem;
+  line-height: 1.5;
+  min-width: 0;
+}
+
+#realtimeCard .rt-enter-confirm-target {
+  margin: 0;
+  font-weight: 800;
+  color: var(--accent-dark);
+  overflow-wrap: anywhere;
+}
+
+#realtimeCard .rt-enter-confirm-tail {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: .78rem;
+  overflow-wrap: anywhere;
+  word-break: break-all;
+}
+
+#realtimeCard .rt-enter-confirm-tail strong {
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  color: var(--ink);
+  font-weight: 750;
+}
+
+#realtimeCard .rt-enter-feedback {
+  margin: 0;
+  color: var(--warm-ink);
+  font-size: .78rem;
+  font-weight: 750;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+#realtimeCard .rt-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 680px) {
+  #realtimeCard {
+    padding: 20px;
+    border-radius: 19px;
+  }
+
+  #realtimeCard .rt-status-top {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  #realtimeCard .rt-actions {
+    width: 100%;
+  }
+
+  #realtimeCard .rt-actions .rt-btn {
+    flex: 1;
+  }
+
+  #realtimeCard .rt-textarea {
+    min-height: 135px;
+    padding: 14px 15px;
+    font-size: 1rem;
+  }
+
+  #realtimeCard .rt-enter-section {
+    padding: 12px 13px;
+  }
+}
+
+@media (max-width: 370px) {
+  #realtimeCard {
+    padding: 15px 13px;
+  }
+
+  #realtimeCard .rt-header {
+    gap: 8px;
+  }
+
+  #realtimeCard .rt-checkcode-wrap {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  #realtimeCard .rt-input-footer {
+    padding: 9px 12px;
+    font-size: .7rem;
+  }
+
+  #realtimeCard .rt-enter-section {
+    padding: 11px 10px;
+  }
+
+  #realtimeCard .rt-enter-btn {
+    padding: 9px 12px;
+    font-size: .85rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #realtimeCard .rt-input-wrap,
+  #realtimeCard .rt-btn,
+  #realtimeCard .rt-enter-btn,
+  #realtimeCard .rt-enter-ring-fill {
+    transition-duration: .01ms !important;
+  }
+
+  #realtimeCard .rt-enter-btn.is-holding .rt-enter-ring-fill {
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  #realtimeCard {
+    border-color: var(--line);
+  }
+
+  #realtimeCard .rt-phase-pill[data-phase="UNKNOWN"],
+  #realtimeCard .rt-phase-pill[data-phase="REVOKED"],
+  #realtimeCard .rt-status-box.is-danger,
+  #realtimeCard .rt-alert {
+    border-color: #6b3f39;
+    background: #3d2522;
+    color: var(--danger);
+  }
+
+  #realtimeCard .rt-status-box.is-warning,
+  #realtimeCard .rt-lease-pill.is-low {
+    border-color: #755d3c;
+  }
+
+  #realtimeCard .rt-enter-section {
+    border-color: var(--line);
+    background: var(--surface-soft);
+  }
+
+  #realtimeCard .rt-enter-section.is-holding {
+    border-color: var(--accent);
+    background: rgba(22, 125, 105, .18);
+  }
+
+  #realtimeCard .rt-enter-badge {
+    background: var(--surface-deep);
+    color: var(--accent);
+  }
+
+  #realtimeCard .rt-enter-btn {
+    background: var(--surface);
+    color: var(--ink);
+  }
+
+  #realtimeCard .rt-enter-btn.is-holding {
+    background: var(--surface-deep);
+    color: var(--accent);
+  }
+
+  #realtimeCard .rt-enter-confirm {
+    border-color: rgba(66, 173, 123, .38);
+    background: var(--surface);
+  }
+
+  #realtimeCard .rt-enter-confirm-target {
+    color: var(--accent);
+  }
+}

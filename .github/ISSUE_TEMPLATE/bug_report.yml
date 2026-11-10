@@ -1,0 +1,26 @@
+name: 錯誤回報 / Bug report
+description: 回報問題（請勿貼上配對碼、IP、state.json 或稽核紀錄）
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: 發生了什麼事 / What happened
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 重現步驟 / Steps to reproduce
+  - type: input
+    id: version
+    attributes:
+      label: FastInput 版本
+  - type: input
+    id: env
+    attributes:
+      label: 環境（Windows 版本、電腦端程式與版本、手機與瀏覽器）
+  - type: textarea
+    id: audit
+    attributes:
+      label: 稽核紀錄中的 reason 代碼（只貼 reason，不要貼其他內容）
